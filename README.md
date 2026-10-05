@@ -38,6 +38,12 @@ rate / fee box, Continue -> PIN authorize -> receipt.
 Bottom nav: Home, Send, Activity, Accounts, Profile — active tab shows filled icon,
 green label, and underline indicator, matching the reference screens exactly.
 
+Accounts: title+subtitle header, balance card, 4 account tiles (Add Money, Manage Banks,
+Withdraw, NORA ID), NORA ID verification card (avatar, Verified badge, View Details),
+Linked Bank Accounts list (Primary pill, Active status), Funding Options grid (Bank
+Transfer, Card Payment, Mobile Money, Cash Deposit), Withdrawal Destinations (Ghana,
+available balance, View banks).
+
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
 2. `npm install`

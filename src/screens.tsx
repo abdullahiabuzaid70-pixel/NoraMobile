@@ -458,6 +458,13 @@ export function ActivityScreen() {
 }
 
 /* ============================== ACCOUNTS ============================== */
+const FUNDING_OPTIONS = [
+  { icon: 'business-outline', title: 'Bank Transfer', sub: 'Instant · Low fee' },
+  { icon: 'card-outline', title: 'Card Payment', sub: 'Visa / Mastercard' },
+  { icon: 'phone-portrait-outline', title: 'Mobile Money', sub: 'Quick & easy' },
+  { icon: 'cash-outline', title: 'Cash Deposit', sub: 'Via agents' },
+] as const;
+
 export function AccountsScreen({ user, go }: { user: User; go: (s: NavTarget) => void }) {
   const [balances, setBalances] = useState<any[] | null>(null);
   const [banks, setBanks] = useState<any[] | null>(null);
@@ -471,57 +478,148 @@ export function AccountsScreen({ user, go }: { user: User; go: (s: NavTarget) =>
   const main = balances?.find((x: any) => x.currency === (user.currency || 'NGN')) || balances?.[0];
   const currency = main?.currency || user.currency || 'NGN';
   const available = main?.available ?? main?.balance ?? 0;
+  const idClean = user.nora_id ? String(user.nora_id).replace('@', '') : 'NA-0000-0000';
 
   return (
     <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
-      <Text style={s.screenTitle}>Accounts</Text>
+      <View style={s.topBar}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.screenTitle}>Accounts</Text>
+          <Text style={s.accountsSubtitle}>Manage your NORA account, linked banks and funding options.</Text>
+        </View>
+        <View style={s.topBarIcons}>
+          <View style={s.bellWrap}>
+            <Ionicons name="notifications-outline" size={18} color={theme.dark} />
+            <View style={s.bellDot} />
+          </View>
+          <Ionicons name="person-circle-outline" size={28} color={theme.textDim} />
+        </View>
+      </View>
       <ErrorText>{error}</ErrorText>
 
       <DarkCard style={{ marginTop: 14 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={s.darkLabel}>NORA Account</Text>
-          <Text style={s.brandWordSmall}>NORA</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="eye-outline" size={13} color={theme.textDimOnDark} />
+          <Text style={s.darkLabel}>NORA Account Balance</Text>
+          <View style={{ flex: 1 }} />
+          <Ionicons name="chevron-forward" size={16} color={theme.textDimOnDark} />
         </View>
         {balances === null ? <ActivityIndicator color={theme.gold} style={{ marginTop: 10 }} /> : (
           <Text style={s.darkBalance}>{money(available, currency)}</Text>
         )}
-        <View style={s.idRow}>
-          <View style={s.activeDot} />
-          <Text style={s.activeLabel}>Active</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+          <View style={s.activePill}><View style={s.activeDot} /><Text style={s.activePillLabel}>Active</Text></View>
         </View>
-        <Text style={s.idTextSmall}>{user.nora_id ? `NORA ID: ${String(user.nora_id).replace('@', '')}` : ''}</Text>
+        <View style={s.idRow}>
+          <Text style={s.idText}>NORA ID: {idClean}</Text>
+          <Ionicons name="copy-outline" size={13} color={theme.textDimOnDark} />
+        </View>
       </DarkCard>
 
-      <View style={s.tileRow}>
-        <ActionTile icon="add" label="Add Money" sub="Fund your NORA account" onPress={() => go('fund')} />
-        <ActionTile icon="arrow-up" label="Withdraw" sub="To your bank account" onPress={() => go('withdraw')} />
-        <ActionTile icon="paper-plane" label="Send" sub="Local & Cross-border" onPress={() => go('send')} />
+      <View style={s.accountTileGrid}>
+        <AccountTile icon="add" label="Add Money" sub="Fund your account" onPress={() => go('fund')} />
+        <AccountTile icon="business" label="Manage Banks" sub="Linked accounts" onPress={() => {}} />
+        <AccountTile icon="swap-horizontal" label="Withdraw" sub="To your bank" onPress={() => go('withdraw')} />
+        <AccountTile icon="card" label="NORA ID" sub="View & manage" onPress={() => {}} />
       </View>
 
-      <View style={{ marginTop: 20 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text style={s.sectionTitle}>Funding Sources</Text>
-          <Text style={s.link}>Manage</Text>
+      <Surface style={{ marginTop: 14, flexDirection: 'row', alignItems: 'center' }}>
+        <View style={s.idAvatar}><Text style={s.idAvatarText}>{idClean.slice(0, 2)}</Text></View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.rowTitleStrong}>NORA ID</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Text style={s.rowSubtle}>{idClean}</Text>
+            <Ionicons name="copy-outline" size={11} color={theme.textDim} />
+          </View>
+          <View style={[s.verifiedPill, { marginTop: 4 }]}>
+            <Ionicons name="checkmark-circle" size={11} color={theme.green} />
+            <Text style={s.verifiedPillLabel}>Verified</Text>
+          </View>
         </View>
-        <Surface style={{ padding: 0 }}>
+        <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Text style={s.link}>View Details</Text>
+          <Ionicons name="chevron-forward" size={13} color={theme.goldDeep} />
+        </Pressable>
+      </Surface>
+      <Text style={s.idFootnote}>Your digital identity for a borderless financial experience.</Text>
+
+      <View style={{ marginTop: 18 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={s.sectionTitle}>Linked Bank Accounts</Text>
+          <Text style={s.link}>Manage all</Text>
+        </View>
+        <Surface style={{ padding: 0, marginTop: 8 }}>
           {banks === null ? <ActivityIndicator color={theme.gold} style={{ padding: 16 }} /> :
             banks.length > 0 ? banks.slice(0, 3).map((b: any, i: number) => (
-              <Row key={b.id || i} icon={<Text>🏦</Text>} title={b.name || b.code} subtitle={i === 0 ? 'Primary' : undefined} onPress={() => {}} />
+              <View key={b.id || i} style={s.bankListRow}>
+                <View style={s.bankListIcon}><Ionicons name="business" size={15} color={theme.textDim} /></View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={s.rowTitleStrong}>{b.name || b.code}</Text>
+                    {i === 0 && <View style={s.primaryPill}><Text style={s.primaryPillLabel}>Primary</Text></View>}
+                  </View>
+                  <Text style={s.rowSubtle}>**** {b.last4 || '0000'}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={s.activeDotSmall} />
+                  <Text style={s.activeStatusLabel}>Active</Text>
+                  <Ionicons name="chevron-forward" size={15} color={theme.textDim} />
+                </View>
+              </View>
             )) : <Text style={[s.empty, { padding: 16 }]}>No linked banks yet.</Text>}
-          <Pressable style={s.addRow}><Text style={s.addRowLabel}>+ Add New Bank Account</Text></Pressable>
         </Surface>
       </View>
 
-      <View style={{ marginTop: 20, marginBottom: 20 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-          <Text style={s.sectionTitle}>Withdrawal Destinations</Text>
+      <View style={{ marginTop: 18 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <Text style={s.sectionTitle}>Funding Options</Text>
+            <Text style={s.rowSubtle}>Add money to your NORA account</Text>
+          </View>
+          <Text style={s.link}>View all</Text>
+        </View>
+        <View style={s.fundingGrid}>
+          {FUNDING_OPTIONS.map((f) => (
+            <Pressable key={f.title} style={s.fundingTile} onPress={() => go('fund')}>
+              <View style={s.fundingTileIcon}><Ionicons name={f.icon as any} size={14} color={theme.textOnDark} /></View>
+              <Text style={s.fundingTileLabel}>{f.title}</Text>
+              <Text style={s.fundingTileSub}>{f.sub}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <View style={{ marginTop: 18, marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <Text style={s.sectionTitle}>Withdrawal Destinations</Text>
+            <Text style={s.rowSubtle}>Receive money in your local bank account or mobile wallet.</Text>
+          </View>
           <Text style={s.link}>Manage</Text>
         </View>
-        <Surface style={{ padding: 0 }}>
-          <Row icon={<Text>{flagFor('GH')}</Text>} title="Ghana — GHS" subtitle="Ghana Commercial Bank" onPress={() => go('withdraw')} />
+        <Surface style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={{ fontSize: 20, marginRight: 12 }}>{flagFor('GH')}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.rowTitleStrong}>Ghana</Text>
+            <Text style={s.rowSubtle}>GHC 840.00 available</Text>
+          </View>
+          <Pressable style={s.viewBanksBtn} onPress={() => go('withdraw')}>
+            <Text style={s.viewBanksBtnLabel}>View banks</Text>
+            <Ionicons name="chevron-forward" size={12} color={theme.text} />
+          </Pressable>
         </Surface>
       </View>
     </ScrollView>
+  );
+}
+
+function AccountTile({ icon, label, sub, onPress }: { icon: any; label: string; sub: string; onPress: () => void }) {
+  return (
+    <Pressable style={s.accountTile} onPress={onPress}>
+      <View style={s.accountTileIcon}><Ionicons name={icon} size={16} color={theme.textOnDark} /></View>
+      <Text style={s.accountTileLabel}>{label}</Text>
+      <Text style={s.accountTileSub}>{sub}</Text>
+    </Pressable>
   );
 }
 
@@ -679,6 +777,31 @@ export function ProfileScreen({ user, onLogout }: { user: User; onLogout: () => 
 
 /* ============================== STYLES ============================== */
 const s = StyleSheet.create({
+  accountsSubtitle: { color: theme.textDim, fontSize: 11.5, marginTop: 3, maxWidth: 230 },
+  accountTileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+  accountTile: { width: '47.5%', backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 14, alignItems: 'center', paddingVertical: 14 },
+  accountTileIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  accountTileLabel: { color: theme.text, fontWeight: '700', fontSize: 12.5 },
+  accountTileSub: { color: theme.textDim, fontSize: 10.5, marginTop: 2 },
+  idAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  idAvatarText: { color: theme.textOnDark, fontWeight: '900', fontSize: 12 },
+  verifiedPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(30,158,90,0.12)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' },
+  verifiedPillLabel: { color: theme.green, fontSize: 10, fontWeight: '700' },
+  idFootnote: { color: theme.textDim, fontSize: 11, marginTop: 6 },
+  bankListRow: { flexDirection: 'row', alignItems: 'center', padding: 13, borderBottomWidth: 1, borderBottomColor: theme.border },
+  bankListIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EFEDE2', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  primaryPill: { backgroundColor: theme.pill, borderRadius: 999, paddingHorizontal: 7, paddingVertical: 1.5 },
+  primaryPillLabel: { color: theme.goldDeep, fontSize: 9.5, fontWeight: '700' },
+  activeDotSmall: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: theme.green },
+  activeStatusLabel: { color: theme.green, fontSize: 10.5, fontWeight: '700' },
+  fundingGrid: { flexDirection: 'row', gap: 8, marginTop: 10 },
+  fundingTile: { flex: 1, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 12, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 4 },
+  fundingTileIcon: { width: 26, height: 26, borderRadius: 13, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  fundingTileLabel: { color: theme.text, fontWeight: '700', fontSize: 10, textAlign: 'center' },
+  fundingTileSub: { color: theme.textDim, fontSize: 8.5, marginTop: 2, textAlign: 'center' },
+  viewBanksBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#EFEDE2', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  viewBanksBtnLabel: { color: theme.text, fontSize: 11, fontWeight: '700' },
+
   logoBadge: { width: 34, height: 34, borderRadius: 10, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center' },
   brandTagline: { color: theme.textDim, fontSize: 9, fontWeight: '600' },
   topBarIcons: { flexDirection: 'row', alignItems: 'center', gap: 10 },
