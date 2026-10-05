@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "NORA",
+    "slug": "noramobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "nora",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#012C21",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.abuzaid.nora"
+    },
+    "android": {
+      "package": "com.abuzaid.nora",
+      "adaptiveIcon": {
+        "backgroundColor": "#012C21"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
