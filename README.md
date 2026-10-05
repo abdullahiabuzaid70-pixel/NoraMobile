@@ -19,6 +19,9 @@ enters their PIN and the backend authorizes it. No fake success states.
 The API client (`src/api.ts`) talks to the live NORA backend:
 `https://nora-sepia.vercel.app` (Express on Vercel).
 
+## Design preview
+`assets/design-preview.png` — the sign-in and home screens as built (colors, layout, and flows match the code).
+
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
 2. `npm install`
