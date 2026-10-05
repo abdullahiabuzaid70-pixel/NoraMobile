@@ -1,5 +1,6 @@
 /** Shared NORA mobile UI primitives — matches official brand design. */
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
 import { theme } from './theme';
 
@@ -72,8 +73,10 @@ export function StatusPill({ status }: { status: string }) {
   const color = s === 'COMPLETED' ? theme.green : s === 'FAILED' ? theme.red : theme.goldDeep;
   const bg = s === 'COMPLETED' ? 'rgba(30,158,90,0.12)' : s === 'FAILED' ? 'rgba(214,69,69,0.12)' : theme.pill;
   const label = s === 'COMPLETED' ? 'Completed' : s === 'FAILED' ? 'Failed' : s ? s[0] + s.slice(1).toLowerCase() : 'Processing';
+  const icon = s === 'COMPLETED' ? 'checkmark-circle' : s === 'FAILED' ? 'close-circle' : 'time-outline';
   return (
-    <View style={[styles.statusPill, { backgroundColor: bg }]}>
+    <View style={[styles.statusPill, { backgroundColor: bg, flexDirection: 'row', alignItems: 'center', gap: 3 }]}>
+      <Ionicons name={icon as any} size={10} color={color} />
       <Text style={[styles.statusPillText, { color }]}>{label}</Text>
     </View>
   );

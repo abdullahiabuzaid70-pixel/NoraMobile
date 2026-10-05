@@ -51,6 +51,11 @@ settings list (Personal Information, Security & Privacy, KYC Verification [Verif
 Notification Settings, Help & Support, About NORA), and a bottom network promo banner
 with Learn More CTA.
 
+Activity: title+subtitle header, date-range pill, filter chips (All/Send/Receive/Add
+Money/Withdraw), dark Total Activity trend card (+12% vs last 30 days, View Analytics),
+Recent Transactions list with direction icons + flag/bank badge overlay and status pills
+(Completed/Processing/Failed with icons), bottom security banner (bank-grade encryption).
+
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
 2. `npm install`

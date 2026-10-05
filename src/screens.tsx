@@ -197,18 +197,30 @@ function ActionTile({ icon, label, sub, onPress }: { icon: any; label: string; s
   );
 }
 
+function txKind(type: string) {
+  if (type.includes('cross')) return 'cross';
+  if (type.includes('withdraw')) return 'withdraw';
+  if (type.includes('add') || type.includes('fund')) return 'fund';
+  if (type.includes('receiv')) return 'receive';
+  if (type.includes('send')) return 'send';
+  return 'other';
+}
+
 function TxRow({ tx, last }: { tx: any; last?: boolean }) {
   const amt = tx.amount ?? tx.debit_amount ?? tx.credit_amount;
-  const type = (tx.type || '').toLowerCase();
-  const sign = type.includes('add') || tx.direction === 'credit' || type.includes('receiv') ? '+' : type.includes('send') || type.includes('withdraw') ? '-' : '';
-  const isWithdraw = type.includes('withdraw');
-  const isFund = type.includes('add') || type.includes('fund');
+  const type = (tx.type || tx.description || '').toLowerCase();
+  const kind = txKind(type);
+  const sign = kind === 'fund' || kind === 'receive' || tx.direction === 'credit' ? '+' : kind === 'send' || kind === 'withdraw' ? '-' : '';
+  const mainIcon = kind === 'send' ? 'arrow-up' : kind === 'receive' ? 'arrow-down' : kind === 'fund' ? 'business' : kind === 'withdraw' ? 'arrow-up' : kind === 'cross' ? 'swap-horizontal' : 'swap-horizontal';
+  const flag = flagFor(tx.country || tx.currency);
+  const hasFlag = flag !== '🌍' && (kind === 'send' || kind === 'receive' || kind === 'cross');
   return (
     <View style={[s.txRow, last && { borderBottomWidth: 0 }]}>
-      <View style={s.txIconCircle}>
-        {isWithdraw ? <Ionicons name="arrow-up" size={14} color={theme.textOnDark} /> :
-         isFund ? <Ionicons name="business" size={14} color={theme.textOnDark} /> :
-         <Text style={{ fontSize: 15 }}>{flagFor(tx.country || tx.currency)}</Text>}
+      <View style={{ position: 'relative', marginRight: 12 }}>
+        <View style={s.txIconCircleBare}><Ionicons name={mainIcon as any} size={14} color={theme.textOnDark} /></View>
+        <View style={s.txBadge}>
+          {hasFlag ? <Text style={{ fontSize: 9 }}>{flag}</Text> : <Ionicons name="business" size={8} color={theme.textDim} />}
+        </View>
       </View>
       <View style={{ flex: 1 }}>
         <Text style={s.txTitle}>{tx.description || tx.type || 'Transfer'}</Text>
@@ -216,10 +228,7 @@ function TxRow({ tx, last }: { tx: any; last?: boolean }) {
       </View>
       <View style={{ alignItems: 'flex-end' }}>
         <Text style={s.txAmount}>{sign}{money(amt, tx.currency)}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
-          <Ionicons name="checkmark-circle" size={11} color={theme.green} />
-          <Text style={s.txStatusLabel}>{(tx.status || 'Completed')}</Text>
-        </View>
+        <StatusPill status={tx.status || 'COMPLETED'} />
       </View>
     </View>
   );
@@ -428,13 +437,32 @@ export function ActivityScreen() {
   useEffect(() => { load(); }, []);
 
   const filtered = (list || []).filter((t: any) => filter === 'All' || (t.type || '').toLowerCase().includes(filter.toLowerCase().split(' ')[0]));
+  const total = (list || []).reduce((sum: number, t: any) => {
+    const type = (t.type || '').toLowerCase();
+    const amt = parseFloat(t.amount ?? t.debit_amount ?? t.credit_amount ?? 0) || 0;
+    return type.includes('send') || type.includes('withdraw') ? sum - amt : sum + amt;
+  }, 0);
+  const currency = list && list[0]?.currency;
 
   return (
     <View style={[s.page, { paddingTop: 18, paddingHorizontal: 18 }]}>
-      <View style={s.sendHeader}>
-        <Text style={s.screenTitle}>Activity</Text>
-        <Text style={s.bell}>📅</Text>
+      <View style={s.topBar}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.screenTitle}>Activity</Text>
+          <Text style={s.accountsSubtitle}>Track your transactions, anytime, anywhere.</Text>
+        </View>
+        <View style={s.topBarIcons}>
+          <View style={s.bellWrap}><Ionicons name="notifications-outline" size={18} color={theme.dark} /><View style={s.bellDot} /></View>
+          <Ionicons name="person-circle-outline" size={28} color={theme.textDim} />
+        </View>
       </View>
+
+      <View style={s.dateRangePill}>
+        <Ionicons name="calendar-outline" size={13} color={theme.text} />
+        <Text style={s.dateRangeLabel}>This month</Text>
+        <Ionicons name="chevron-down" size={12} color={theme.text} />
+      </View>
+
       <View style={s.filterRow}>
         {FILTERS.map((f) => (
           <Pressable key={f} onPress={() => setFilter(f)} style={[s.filterChip, filter === f && s.filterChipOn]}>
@@ -442,6 +470,35 @@ export function ActivityScreen() {
           </Pressable>
         ))}
       </View>
+
+      <DarkCard style={{ marginTop: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={s.darkLabel}>Total Activity</Text>
+          <Ionicons name="eye-outline" size={12} color={theme.textDimOnDark} />
+        </View>
+        <Text style={s.darkBalance}>{money(Math.abs(total), currency || 'NGN')}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="arrow-up" size={11} color={theme.green} />
+            <Text style={s.trendUp}>+12%</Text>
+            <Text style={s.idText}>vs last 30 days</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="stats-chart-outline" size={13} color={theme.textDimOnDark} />
+            <Text style={s.analyticsLink}>View Analytics</Text>
+            <Ionicons name="chevron-forward" size={12} color={theme.textDimOnDark} />
+          </View>
+        </View>
+      </DarkCard>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 8 }}>
+        <Text style={s.sectionTitle}>Recent Transactions</Text>
+        <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Text style={s.link}>See all</Text>
+          <Ionicons name="chevron-forward" size={13} color={theme.goldDeep} />
+        </Pressable>
+      </View>
+
       <ErrorText>{error}</ErrorText>
       {list === null && !error ? <ActivityIndicator color={theme.gold} style={{ marginTop: 24 }} /> : (
         <FlatList
@@ -449,8 +506,18 @@ export function ActivityScreen() {
           keyExtractor={(_, i) => String(i)}
           renderItem={({ item, index }) => <TxRow tx={item} last={index === filtered.length - 1} />}
           ListEmptyComponent={<Text style={s.empty}>No transactions yet.</Text>}
+          ListFooterComponent={
+            <View style={s.securityBanner}>
+              <View style={s.securityIcon}><Ionicons name="shield-checkmark" size={15} color={theme.gold} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.securityTitle}>Your transactions are secure</Text>
+                <Text style={s.securitySub}>Powered by bank-grade encryption and NORA's trusted network.</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={14} color={theme.textDim} />
+            </View>
+          }
           contentContainerStyle={{ paddingBottom: 120 }}
-          style={{ marginTop: 8 }}
+          style={{ marginTop: 4 }}
         />
       )}
     </View>
@@ -888,6 +955,18 @@ function AccountOverviewCard({ user }: { user: User }) {
 
 /* ============================== STYLES ============================== */
 const s = StyleSheet.create({
+  txIconCircleBare: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center' },
+  txBadge: { position: 'absolute', bottom: -3, right: -3, width: 16, height: 16, borderRadius: 8, backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
+  activityHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 2 },
+  dateRangePill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
+  dateRangeLabel: { color: theme.text, fontSize: 10.5, fontWeight: '600' },
+  trendUp: { color: theme.green, fontSize: 12, fontWeight: '700' },
+  analyticsLink: { color: theme.textDimOnDark, fontSize: 11.5, fontWeight: '700' },
+  securityBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFEDE2', borderRadius: 14, padding: 13, marginTop: 16, marginBottom: 20 },
+  securityIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  securityTitle: { color: theme.text, fontWeight: '800', fontSize: 12.5 },
+  securitySub: { color: theme.textDim, fontSize: 10.5, marginTop: 2 },
+
   profileHeadRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 16 },
   avatarWrap: { position: 'relative' },
   cameraBadge: { position: 'absolute', bottom: -2, right: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: theme.gold, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: theme.bg },
