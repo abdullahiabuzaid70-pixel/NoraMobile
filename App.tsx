@@ -51,7 +51,7 @@ export default function App() {
        tab === 'send' ? <SendScreen user={user} back={() => setTab('home')} /> :
        tab === 'activity' ? <ActivityScreen /> :
        tab === 'accounts' ? <AccountsScreen user={user} go={go} /> :
-       <ProfileScreen user={user} onLogout={() => { setToken(null); setUser(null); setTab('home'); }} />}
+       <ProfileScreen user={user} go={go} onLogout={() => { setToken(null); setUser(null); setTab('home'); }} />}
 
       {modalScreen === null && (
         <View style={styles.tabBar}>

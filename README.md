@@ -44,6 +44,13 @@ Linked Bank Accounts list (Primary pill, Active status), Funding Options grid (B
 Transfer, Card Payment, Mobile Money, Cash Deposit), Withdrawal Destinations (Ghana,
 available balance, View banks).
 
+Profile: avatar with camera-edit badge, verified badge + Verified pill, NORA ID feature
+card (Full KYC Level 2, Show my NORA ID + QR), Account Overview balance card with mini
+card graphic, 4 account tiles (Fund Account, Withdraw, Linked Banks, NORA ID), full
+settings list (Personal Information, Security & Privacy, KYC Verification [Verified],
+Notification Settings, Help & Support, About NORA), and a bottom network promo banner
+with Learn More CTA.
+
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
 2. `npm install`
