@@ -6,6 +6,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { setToken } from './src/api';
 import { AccountsScreen, ActivityScreen, AuthScreen, FundScreen, HomeScreen, ProfileScreen, SendScreen, User, WithdrawScreen } from './src/screens';
@@ -14,12 +15,12 @@ import { theme } from './src/theme';
 type Tab = 'home' | 'send' | 'activity' | 'accounts' | 'profile';
 type ModalScreen = 'fund' | 'withdraw' | null;
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'home', label: 'Home', emoji: '🏠' },
-  { id: 'send', label: 'Send', emoji: '↗' },
-  { id: 'activity', label: 'Activity', emoji: '🕘' },
-  { id: 'accounts', label: 'Accounts', emoji: '🏦' },
-  { id: 'profile', label: 'Profile', emoji: '👤' },
+const TABS: { id: Tab; label: string; icon: any; iconOutline: any }[] = [
+  { id: 'home', label: 'Home', icon: 'home', iconOutline: 'home-outline' },
+  { id: 'send', label: 'Send', icon: 'paper-plane', iconOutline: 'paper-plane-outline' },
+  { id: 'activity', label: 'Activity', icon: 'time', iconOutline: 'time-outline' },
+  { id: 'accounts', label: 'Accounts', icon: 'business', iconOutline: 'business-outline' },
+  { id: 'profile', label: 'Profile', icon: 'person', iconOutline: 'person-outline' },
 ];
 
 export default function App() {
@@ -54,12 +55,16 @@ export default function App() {
 
       {modalScreen === null && (
         <View style={styles.tabBar}>
-          {TABS.map((t) => (
-            <Pressable key={t.id} onPress={() => setTab(t.id)} style={styles.tabBtn}>
-              <Text style={{ fontSize: 17, opacity: tab === t.id ? 1 : 0.45 }}>{t.emoji}</Text>
-              <Text style={[styles.tabLabel, tab === t.id && styles.tabLabelOn]}>{t.label}</Text>
-            </Pressable>
-          ))}
+          {TABS.map((t) => {
+            const on = tab === t.id;
+            return (
+              <Pressable key={t.id} onPress={() => setTab(t.id)} style={styles.tabBtn}>
+                <Ionicons name={on ? t.icon : t.iconOutline} size={19} color={on ? theme.green : theme.textDim} />
+                <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>{t.label}</Text>
+                {on && <View style={styles.tabUnderline} />}
+              </Pressable>
+            );
+          })}
         </View>
       )}
       <StatusBar style="dark" />
@@ -72,5 +77,6 @@ const styles = StyleSheet.create({
   tabBar: { flexDirection: 'row', backgroundColor: theme.surface, borderTopWidth: 1, borderTopColor: theme.border, paddingVertical: 10, paddingBottom: 14, paddingHorizontal: 6 },
   tabBtn: { flex: 1, alignItems: 'center' },
   tabLabel: { color: theme.textDim, fontSize: 10, fontWeight: '700', marginTop: 3 },
-  tabLabelOn: { color: theme.dark },
+  tabLabelOn: { color: theme.green },
+  tabUnderline: { marginTop: 4, width: 18, height: 2, borderRadius: 1, backgroundColor: theme.green },
 });

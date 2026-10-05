@@ -1,7 +1,8 @@
 /** NORA mobile screens — matches the official brand design (light bg, dark-green cards, gold accents).
  * §RULE: Intent ≠ Authorization. Money moves only after the human enters their PIN. */
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { nora, setToken, ApiError } from './api';
 import { theme } from './theme';
 import { DarkCard, ErrorText, Field, flagFor, money, PrimaryButton, Row, StatusPill, Surface } from './ui';
@@ -79,6 +80,7 @@ export function HomeScreen({ user, go }: { user: User; go: (s: NavTarget) => voi
   const [balances, setBalances] = useState<any[] | null>(null);
   const [recent, setRecent] = useState<any[] | null>(null);
   const [error, setError] = useState('');
+  const [hidden, setHidden] = useState(false);
 
   const load = async () => {
     setError('');
@@ -93,50 +95,87 @@ export function HomeScreen({ user, go }: { user: User; go: (s: NavTarget) => voi
   const main = balances?.find((x: any) => x.currency === (user.currency || 'NGN')) || balances?.[0];
   const currency = main?.currency || user.currency || 'NGN';
   const available = main?.available ?? main?.balance ?? main?.available_balance ?? 0;
+  const initial = (user.first_name || '?')[0]?.toUpperCase();
 
   return (
     <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
       <View style={s.topBar}>
         <View style={s.brandRow}>
-          <Text style={s.brandMark}>⟲</Text>
-          <Text style={s.brandWord}>NORA</Text>
+          <View style={s.logoBadge}><Ionicons name="infinite" size={18} color={theme.gold} /></View>
+          <View>
+            <Text style={s.brandWord}>NORA</Text>
+            <Text style={s.brandTagline}>Africa's Financial Network</Text>
+          </View>
         </View>
-        <Text style={s.bell}>🔔</Text>
+        <View style={s.topBarIcons}>
+          <View style={s.bellWrap}>
+            <Ionicons name="notifications-outline" size={20} color={theme.dark} />
+            <View style={s.bellDot} />
+          </View>
+          <Ionicons name="person-circle-outline" size={30} color={theme.textDim} />
+        </View>
       </View>
-      <Text style={s.greeting}>Good morning, {user.first_name || 'there'} 👋</Text>
-      <Text style={s.greetingSub}>Let's keep your money moving.</Text>
+
+      <View style={s.greetingRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.greetingLight}>Good morning,</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Text style={s.greetingName}>{user.first_name || 'there'}</Text>
+            <Ionicons name="checkmark-circle" size={15} color={theme.gold} />
+          </View>
+          <Text style={s.greetingSub}>Let's keep your money moving.</Text>
+        </View>
+        <Text style={s.oneNetworkText}>One Network.{'\n'}Multiple Countries.{'\n'}Endless Opportunities.</Text>
+      </View>
       {error ? <ErrorText>{error}</ErrorText> : null}
 
       <DarkCard style={{ marginTop: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={s.darkLabel}>NORA Account Balance</Text>
-          <Text style={s.darkChevron}>›</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={s.darkLabel}>NORA Account Balance</Text>
+            <Pressable onPress={() => setHidden(!hidden)}>
+              <Ionicons name={hidden ? 'eye-off-outline' : 'eye-outline'} size={14} color={theme.textDimOnDark} />
+            </Pressable>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={theme.textDimOnDark} />
         </View>
         {balances === null && !error ? <ActivityIndicator color={theme.gold} style={{ marginTop: 10 }} /> : (
-          <Text style={s.darkBalance}>{money(available, currency)}</Text>
+          <Text style={s.darkBalance}>{hidden ? '••••••' : money(available, currency)}</Text>
         )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+          <View style={s.activePill}>
+            <View style={s.activeDot} />
+            <Text style={s.activePillLabel}>Active</Text>
+          </View>
+        </View>
         <View style={s.idRow}>
-          <View style={s.activeDot} />
           <Text style={s.idText}>{user.nora_id ? `NORA ID: ${String(user.nora_id).replace('@', '')}` : 'NORA ID: —'}</Text>
-          <Text style={s.activeLabel}>Active</Text>
+          <Ionicons name="copy-outline" size={13} color={theme.textDimOnDark} />
         </View>
       </DarkCard>
 
       <View style={s.tileRow}>
-        <ActionTile emoji="➕" label="Add Money" onPress={() => go('fund')} />
-        <ActionTile emoji="↗" label="Send" onPress={() => go('send')} />
-        <ActionTile emoji="↓" label="Withdraw" onPress={() => go('withdraw')} />
+        <ActionTile icon="add" label="Add Money" sub="Fund your NORA account" onPress={() => go('fund')} />
+        <ActionTile icon="paper-plane" label="Send" sub="Local & Cross-border" onPress={() => go('send')} />
+        <ActionTile icon="arrow-up" label="Withdraw" sub="To your bank account" onPress={() => go('withdraw')} />
       </View>
 
-      <DarkCard style={{ marginTop: 14 }}>
-        <Text style={s.promoText}>More countries. More opportunities.</Text>
+      <View style={s.promoCard}>
+        <Text style={s.promoTitle}>More countries.{'\n'}More opportunities.</Text>
         <Text style={s.promoSub}>Send and receive across Africa with NORA.</Text>
-      </DarkCard>
+        <View style={s.exploreBtn}>
+          <Text style={s.exploreBtnLabel}>Explore Now</Text>
+          <Ionicons name="arrow-forward" size={13} color={theme.dark} />
+        </View>
+      </View>
 
       <View style={{ marginTop: 18 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
           <Text style={s.sectionTitle}>Recent Activity</Text>
-          <Pressable onPress={() => go('activity')}><Text style={s.link}>See all</Text></Pressable>
+          <Pressable onPress={() => go('activity')} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Text style={s.link}>See all</Text>
+            <Ionicons name="chevron-forward" size={13} color={theme.goldDeep} />
+          </Pressable>
         </View>
         <Surface style={{ padding: 0 }}>
           {recent === null && !error ? <ActivityIndicator color={theme.gold} style={{ padding: 16 }} /> :
@@ -148,40 +187,58 @@ export function HomeScreen({ user, go }: { user: User; go: (s: NavTarget) => voi
   );
 }
 
-function ActionTile({ emoji, label, onPress }: { emoji: string; label: string; onPress: () => void }) {
+function ActionTile({ icon, label, sub, onPress }: { icon: any; label: string; sub: string; onPress: () => void }) {
   return (
     <Pressable style={s.tile} onPress={onPress}>
-      <Text style={s.tileEmoji}>{emoji}</Text>
+      <View style={s.tileIconCircle}><Ionicons name={icon} size={16} color={theme.dark} /></View>
       <Text style={s.tileLabel}>{label}</Text>
+      <Text style={s.tileSub}>{sub}</Text>
     </Pressable>
   );
 }
 
 function TxRow({ tx, last }: { tx: any; last?: boolean }) {
   const amt = tx.amount ?? tx.debit_amount ?? tx.credit_amount;
-  const sign = (tx.type || '').toLowerCase().includes('add') || (tx.direction === 'credit') ? '+' : (tx.type || '').toLowerCase().includes('send') ? '-' : '';
+  const type = (tx.type || '').toLowerCase();
+  const sign = type.includes('add') || tx.direction === 'credit' || type.includes('receiv') ? '+' : type.includes('send') || type.includes('withdraw') ? '-' : '';
+  const isWithdraw = type.includes('withdraw');
+  const isFund = type.includes('add') || type.includes('fund');
   return (
     <View style={[s.txRow, last && { borderBottomWidth: 0 }]}>
-      <Text style={s.txFlag}>{flagFor(tx.country || tx.currency)}</Text>
+      <View style={s.txIconCircle}>
+        {isWithdraw ? <Ionicons name="arrow-up" size={14} color={theme.textOnDark} /> :
+         isFund ? <Ionicons name="business" size={14} color={theme.textOnDark} /> :
+         <Text style={{ fontSize: 15 }}>{flagFor(tx.country || tx.currency)}</Text>}
+      </View>
       <View style={{ flex: 1 }}>
         <Text style={s.txTitle}>{tx.description || tx.type || 'Transfer'}</Text>
         <Text style={s.txSub}>{tx.created_at ? new Date(tx.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
         <Text style={s.txAmount}>{sign}{money(amt, tx.currency)}</Text>
-        <StatusPill status={tx.status || 'COMPLETED'} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 }}>
+          <Ionicons name="checkmark-circle" size={11} color={theme.green} />
+          <Text style={s.txStatusLabel}>{(tx.status || 'Completed')}</Text>
+        </View>
       </View>
     </View>
   );
 }
 
 /* ============================== SEND ============================== */
+const SEND_MODES: { id: 'nora_transfer' | 'cross_border' | 'non_nora'; label: string; icon: any }[] = [
+  { id: 'nora_transfer', label: 'NORA Transfer', icon: 'swap-horizontal' },
+  { id: 'cross_border', label: 'Cross-Border', icon: 'globe-outline' },
+  { id: 'non_nora', label: 'Non-NORA Recipient', icon: 'person-outline' },
+];
+
 export function SendScreen({ user, back }: { user: User; back: () => void }) {
-  const [mode, setMode] = useState<'local' | 'cross'>('cross');
+  const [mode, setMode] = useState<'nora_transfer' | 'cross_border' | 'non_nora'>('nora_transfer');
   const [sendTo, setSendTo] = useState<'nora_id' | 'nora_account' | 'bank'>('nora_id');
   const [recipient, setRecipient] = useState('');
   const [resolved, setResolved] = useState<any | null>(null);
   const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
   const [quote, setQuote] = useState<any | null>(null);
   const [pin, setPin] = useState('');
   const [pinOpen, setPinOpen] = useState(false);
@@ -211,7 +268,7 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
     setError(''); setBusy(true);
     try {
       const res = await nora.authorizeTransfer(quote?.id || quote?.quote_id, pin);
-      setReceipt(res); setPinOpen(false); setPin(''); setQuote(null); setResolved(null); setRecipient(''); setAmount('');
+      setReceipt(res); setPinOpen(false); setPin(''); setQuote(null); setResolved(null); setRecipient(''); setAmount(''); setMessage('');
     } catch (e) { setError(err(e)); } finally { setBusy(false); }
   };
 
@@ -219,7 +276,7 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
     return (
       <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
         <Surface style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 34 }}>✅</Text>
+          <Ionicons name="checkmark-circle" size={40} color={theme.green} />
           <Text style={s.cardTitle}>Transfer sent</Text>
           <Text style={s.receiptAmount}>{money(receipt.amount ?? receipt.debit_amount, receipt.currency || user.currency)}</Text>
           <Text style={s.receiptRef}>Reference: {receipt.reference || receipt.id}</Text>
@@ -234,50 +291,55 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
   return (
     <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
       <View style={s.sendHeader}>
-        <Pressable onPress={back}><Text style={s.backArrow}>←</Text></Pressable>
-        <Text style={s.screenTitle}>Send Money</Text>
-        <Text style={s.bell}>🔔</Text>
+        <Pressable onPress={back}><Ionicons name="arrow-back" size={22} color={theme.text} /></Pressable>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={s.screenTitle}>Send Money</Text>
+          <Text style={s.sendSubtitle}>Local. Cross-border. Seamless.</Text>
+        </View>
+        <View style={s.bellWrap}>
+          <Ionicons name="notifications-outline" size={20} color={theme.dark} />
+          <View style={s.bellDot} />
+        </View>
       </View>
 
-      <View style={s.segment}>
-        <Pressable style={[s.segmentBtn, mode === 'local' && s.segmentOn]} onPress={() => setMode('local')}>
-          <Text style={[s.segmentLabel, mode === 'local' && s.segmentOnLabel]}>Local Transfer</Text>
-        </Pressable>
-        <Pressable style={[s.segmentBtn, mode === 'cross' && s.segmentOn]} onPress={() => setMode('cross')}>
-          <Text style={[s.segmentLabel, mode === 'cross' && s.segmentOnLabel]}>Cross-Border</Text>
-        </Pressable>
+      <View style={s.sendPromo}>
+        <Text style={s.sendPromoLabel}>Send with NORA</Text>
+        <Text style={s.sendPromoTitle}>Money moves{'\n'}across Africa.</Text>
+        <Text style={s.sendPromoSub}>Fast. Safe. Borderless.</Text>
       </View>
 
-      <Text style={s.sectionTitle}>Send to</Text>
-      <Surface style={{ padding: 0, marginBottom: 14 }}>
-        <Pressable style={s.sendToRow} onPress={() => setSendTo('nora_id')}>
-          <Text style={s.sendToIcon}>🆔</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.rowTitleStrong}>NORA ID</Text>
-            <Text style={s.rowSubtle}>Send to another NORA user</Text>
-          </View>
-          <Text style={[s.radio, sendTo === 'nora_id' && s.radioOn]}>{sendTo === 'nora_id' ? '●' : '○'}</Text>
-        </Pressable>
-        <Pressable style={s.sendToRow} onPress={() => setSendTo('nora_account')}>
-          <Text style={s.sendToIcon}>👤</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.rowTitleStrong}>NORA Account</Text>
-            <Text style={s.rowSubtle}>Send to a NORA account</Text>
-          </View>
-          <Text style={[s.radio, sendTo === 'nora_account' && s.radioOn]}>{sendTo === 'nora_account' ? '●' : '○'}</Text>
-        </Pressable>
-        <Pressable style={[s.sendToRow, { borderBottomWidth: 0 }]} onPress={() => setSendTo('bank')}>
-          <Text style={s.sendToIcon}>🏦</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.rowTitleStrong}>Bank Account</Text>
-            <Text style={s.rowSubtle}>Send to a bank (non-NORA)</Text>
-          </View>
-          <Text style={[s.radio, sendTo === 'bank' && s.radioOn]}>{sendTo === 'bank' ? '●' : '○'}</Text>
-        </Pressable>
-      </Surface>
+      <View style={s.modeRow}>
+        {SEND_MODES.map((m) => (
+          <Pressable key={m.id} onPress={() => setMode(m.id)} style={[s.modeChip, mode === m.id && s.modeChipOn]}>
+            <Ionicons name={m.icon} size={13} color={mode === m.id ? theme.textOnDark : theme.textDim} />
+            <Text style={[s.modeChipLabel, mode === m.id && s.modeChipOnLabel]} numberOfLines={1}>{m.label}</Text>
+          </Pressable>
+        ))}
+      </View>
 
-      <Field label="Recipient" value={recipient} onChangeText={setRecipient} placeholder="Search by NORA ID, name or phone" />
-      <PrimaryButton variant="outline" label="Resolve recipient" onPress={doResolve} loading={busy && !quote} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+        <Text style={s.sectionTitle}>Send to</Text>
+        <Ionicons name="information-circle-outline" size={14} color={theme.textDim} />
+      </View>
+      <SendToCard icon="N" title="NORA ID" sub="Send to another NORA user" selected={sendTo === 'nora_id'} onPress={() => setSendTo('nora_id')} />
+      <SendToCard iconName="business-outline" title="NORA Account" sub="Send to a NORA account" selected={sendTo === 'nora_account'} onPress={() => setSendTo('nora_account')} />
+      <SendToCard iconName="business-outline" title="Bank Account" sub="Send to a bank (non-NORA)" selected={sendTo === 'bank'} onPress={() => setSendTo('bank')} />
+
+      <Text style={[s.sectionTitle, { marginTop: 6, marginBottom: 8 }]}>Recipient</Text>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+        <View style={[s.input, { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+          <Ionicons name="search" size={15} color={theme.textDim} />
+          <TextInput
+            style={{ flex: 1, color: theme.text, fontSize: 14 }}
+            value={recipient}
+            onChangeText={setRecipient}
+            placeholder="Search by NORA ID, name or phone"
+            placeholderTextColor={theme.textDim}
+            autoCapitalize="none"
+          />
+        </View>
+        <Pressable style={s.contactBtn} onPress={doResolve}><Ionicons name="person-add-outline" size={16} color={theme.dark} /></Pressable>
+      </View>
       {resolved && (
         <View style={s.resolvedBox}>
           <Text style={s.resolvedName}>{resolved.display_name || resolved.name || `${resolved.first_name || ''} ${resolved.last_name || ''}`.trim() || 'Recipient'}</Text>
@@ -285,19 +347,39 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
         </View>
       )}
 
-      <Field label={`Amount (${user.currency || 'NGN'})`} value={amount} onChangeText={setAmount} placeholder="Enter amount" keyboardType="number-pad" />
-      <PrimaryButton variant="outline" label="Get quote" onPress={doQuote} loading={busy && !!resolved} disabled={!resolved} />
-      {quote && (
-        <View style={s.quoteBox}>
-          <View style={s.quoteLine}><Text style={s.quoteLabel}>Recipient gets</Text><Text style={s.quoteValue}>{money(quote.receive_amount ?? quote.amount, quote.recipient_currency || quote.currency)}</Text></View>
-          <View style={s.quoteLine}><Text style={s.quoteLabel}>Rate</Text><Text style={s.quoteValue}>{quote.rate ?? '—'}</Text></View>
-          <View style={s.quoteLine}><Text style={s.quoteLabel}>Fee</Text><Text style={s.quoteValue}>{money(quote.fee ?? quote.fee_amount)}</Text></View>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.sectionTitle}>Amount</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
+            <View style={s.currencyPill}><Text style={s.currencyPillLabel}>{user.currency || 'NGN'}</Text><Ionicons name="chevron-down" size={12} color={theme.text} /></View>
+            <TextInput style={[s.input, { flex: 1 }]} value={amount} onChangeText={setAmount} placeholder="Enter amount" placeholderTextColor={theme.textDim} keyboardType="number-pad" />
+          </View>
         </View>
-      )}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={s.sectionTitle}>Message</Text>
+            <Text style={s.rowSubtle}>Optional</Text>
+          </View>
+          <TextInput style={[s.input, { marginTop: 8 }]} value={message} onChangeText={setMessage} placeholder="Add a note" placeholderTextColor={theme.textDim} />
+        </View>
+      </View>
 
-      <Field label="Message (Optional)" value="" onChangeText={() => {}} placeholder="Add a note" />
+      <Pressable onPress={doQuote} style={s.rateBox}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Ionicons name="globe-outline" size={16} color={theme.textDim} />
+          <View>
+            <Text style={s.rateLabel}>Exchange Rate</Text>
+            <Text style={s.rateValue}>{quote?.rate ? `1 USD = ${quote.rate} ${quote.recipient_currency || ''}` : 'Tap to get a quote'}</Text>
+          </View>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={s.rateLabel}>Estimated Fee</Text>
+          <Text style={s.rateValue}>{money(quote?.fee ?? quote?.fee_amount ?? 0, user.currency)}</Text>
+        </View>
+      </Pressable>
+
       <ErrorText>{error}</ErrorText>
-      <PrimaryButton label="Continue" onPress={() => setPinOpen(true)} disabled={!quote} />
+      <PrimaryButton label={quote ? 'Continue' : (busy ? 'Getting quote…' : 'Get quote')} onPress={quote ? () => setPinOpen(true) : doQuote} loading={busy} disabled={!resolved} />
       <Text style={s.footNote}>Your PIN authorizes the transfer. No PIN, no money moves.</Text>
 
       {pinOpen && (
@@ -311,6 +393,22 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
         </Surface>
       )}
     </ScrollView>
+  );
+}
+
+function SendToCard({ icon, iconName, title, sub, selected, onPress }: { icon?: string; iconName?: any; title: string; sub: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={[s.sendToCard, selected && s.sendToCardOn]}>
+      <View style={[s.sendToCardIcon, selected && s.sendToCardIconOn]}>
+        {icon ? <Text style={{ color: selected ? theme.textOnDark : theme.textDim, fontWeight: '900', fontSize: 13 }}>{icon}</Text> :
+          <Ionicons name={iconName} size={16} color={selected ? theme.textOnDark : theme.textDim} />}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={s.rowTitleStrong}>{title}</Text>
+        <Text style={s.rowSubtle}>{sub}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={16} color={theme.textDim} />
+    </Pressable>
   );
 }
 
@@ -395,9 +493,9 @@ export function AccountsScreen({ user, go }: { user: User; go: (s: NavTarget) =>
       </DarkCard>
 
       <View style={s.tileRow}>
-        <ActionTile emoji="➕" label="Add Money" onPress={() => go('fund')} />
-        <ActionTile emoji="↓" label="Withdraw" onPress={() => go('withdraw')} />
-        <ActionTile emoji="↗" label="Send" onPress={() => go('send')} />
+        <ActionTile icon="add" label="Add Money" sub="Fund your NORA account" onPress={() => go('fund')} />
+        <ActionTile icon="arrow-up" label="Withdraw" sub="To your bank account" onPress={() => go('withdraw')} />
+        <ActionTile icon="paper-plane" label="Send" sub="Local & Cross-border" onPress={() => go('send')} />
       </View>
 
       <View style={{ marginTop: 20 }}>
@@ -581,6 +679,47 @@ export function ProfileScreen({ user, onLogout }: { user: User; onLogout: () => 
 
 /* ============================== STYLES ============================== */
 const s = StyleSheet.create({
+  logoBadge: { width: 34, height: 34, borderRadius: 10, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center' },
+  brandTagline: { color: theme.textDim, fontSize: 9, fontWeight: '600' },
+  topBarIcons: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  bellWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center' },
+  bellDot: { position: 'absolute', top: 7, right: 8, width: 6, height: 6, borderRadius: 3, backgroundColor: theme.gold },
+  greetingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 16 },
+  greetingLight: { color: theme.textDim, fontSize: 15 },
+  greetingName: { color: theme.dark, fontSize: 20, fontWeight: '900' },
+  oneNetworkText: { color: theme.dark, fontSize: 10, fontWeight: '700', textAlign: 'right', lineHeight: 15, maxWidth: 120 },
+  activePill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(240,180,41,0.18)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  activePillLabel: { color: theme.gold, fontSize: 11, fontWeight: '700' },
+  tileSub: { color: theme.textDimOnDark, fontSize: 9.5, marginTop: 2, textAlign: 'center' },
+  tileIconCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: theme.textOnDark, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  promoCard: { backgroundColor: '#EFEDE2', borderRadius: 18, padding: 18, marginTop: 14 },
+  promoTitle: { color: theme.dark, fontWeight: '900', fontSize: 16, lineHeight: 21 },
+  exploreBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.gold, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, alignSelf: 'flex-start', marginTop: 12 },
+  exploreBtnLabel: { color: theme.dark, fontWeight: '800', fontSize: 12 },
+  txIconCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  txStatusLabel: { color: theme.green, fontSize: 10.5, fontWeight: '700' },
+  sendSubtitle: { color: theme.textDim, fontSize: 11.5, marginTop: 1 },
+  sendPromo: { backgroundColor: theme.dark, borderRadius: 16, padding: 16, marginBottom: 14 },
+  sendPromoLabel: { color: theme.gold, fontSize: 11, fontWeight: '700' },
+  sendPromoTitle: { color: theme.textOnDark, fontSize: 19, fontWeight: '900', marginTop: 6, lineHeight: 24 },
+  sendPromoSub: { color: theme.textDimOnDark, fontSize: 12, marginTop: 6 },
+  modeRow: { flexDirection: 'row', gap: 6, marginBottom: 16 },
+  modeChip: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 4, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+  modeChipOn: { backgroundColor: theme.dark, borderColor: theme.dark },
+  modeChipLabel: { color: theme.textDim, fontSize: 10, fontWeight: '700' },
+  modeChipOnLabel: { color: theme.textOnDark },
+  sendToCard: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: theme.border, borderRadius: 14, padding: 13, marginBottom: 8, backgroundColor: theme.surface },
+  sendToCardOn: { borderColor: theme.green, backgroundColor: 'rgba(30,158,90,0.06)' },
+  sendToCardIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#EFEDE2', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  sendToCardIconOn: { backgroundColor: theme.green },
+  contactBtn: { width: 46, borderRadius: 12, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.surface },
+  currencyPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 13 },
+  currencyPillLabel: { color: theme.text, fontWeight: '700', fontSize: 13 },
+  rateBox: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#F1EFE6', borderRadius: 12, padding: 13, marginTop: 14, marginBottom: 6 },
+  rateLabel: { color: theme.textDim, fontSize: 10.5 },
+  rateValue: { color: theme.text, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  input: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 12, color: theme.text, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
+
   page: { flex: 1, backgroundColor: theme.bg },
   pageInner: { padding: 18, paddingBottom: 120 },
   logoWrap: { alignItems: 'center', marginVertical: 36 },

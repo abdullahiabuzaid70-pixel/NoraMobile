@@ -20,10 +20,23 @@ The API client (`src/api.ts`) talks to the live NORA backend:
 `https://nora-sepia.vercel.app` (Express on Vercel).
 
 ## Design
-Matches the official NORA brand: light cream background, dark-green (#0A2D22) cards for
-balance/tiles/promo, gold (#F0B429) accents. 5 tabs: Home, Send, Activity, Accounts, Profile.
-Send flow: Local Transfer / Cross-Border toggle + 3 recipient types (NORA ID, NORA Account, Bank Account).
-Accounts screen: card-style balance, Funding Sources, Withdrawal Destinations.
+Matches the official NORA brand reference screens exactly: light cream background,
+dark-green (#0A2D22) cards for balance/tiles/promo banners, gold (#F0B429) accents,
+real icon set (@expo/vector-icons / Ionicons) instead of emoji placeholders.
+
+Home: logo header, bell + profile icons, verified-badge greeting, balance card with
+eye-toggle, Active pill, copyable NORA ID, 3 icon-circle action tiles with subtitles,
+light promo banner with gold "Explore Now" CTA, recent activity with icon avatars
+and checkmark status.
+
+Send: back header with subtitle, dark promo banner ("Money moves across Africa"),
+3-way mode switch (NORA Transfer / Cross-Border / Non-NORA Recipient), 3 recipient-type
+cards (NORA ID, NORA Account, Bank Account) with selected-state highlight, recipient
+search + contact button, amount+currency and message side by side, exchange
+rate / fee box, Continue -> PIN authorize -> receipt.
+
+Bottom nav: Home, Send, Activity, Accounts, Profile — active tab shows filled icon,
+green label, and underline indicator, matching the reference screens exactly.
 
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
