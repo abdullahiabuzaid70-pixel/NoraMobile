@@ -19,8 +19,11 @@ enters their PIN and the backend authorizes it. No fake success states.
 The API client (`src/api.ts`) talks to the live NORA backend:
 `https://nora-sepia.vercel.app` (Express on Vercel).
 
-## Design preview
-`assets/design-preview.png` — the sign-in and home screens as built (colors, layout, and flows match the code).
+## Design
+Matches the official NORA brand: light cream background, dark-green (#0A2D22) cards for
+balance/tiles/promo, gold (#F0B429) accents. 5 tabs: Home, Send, Activity, Accounts, Profile.
+Send flow: Local Transfer / Cross-Border toggle + 3 recipient types (NORA ID, NORA Account, Bank Account).
+Accounts screen: card-style balance, Funding Sources, Withdrawal Destinations.
 
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
