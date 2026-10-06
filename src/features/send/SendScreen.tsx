@@ -20,6 +20,7 @@ import { accountApi, paymentsApi, Recipient } from '../../services/api/noraClien
 import { ApiError } from '../../services/api/client';
 import { newIdempotencyKey } from '../../services/api/client';
 import { err, NavTarget, User } from '../../types';
+import { ReceiptView } from '../receipt/ReceiptView';
 import { track } from '../../analytics/analytics';
 
 const SEND_MODES: { id: 'nora_transfer' | 'cross_border' | 'non_nora'; label: string; icon: any }[] = [
@@ -115,31 +116,22 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
     } finally { setBusy(false); }
   };
 
-  // ── Receipt — truthful status only (§12) ──────────────────────────
+  // ── Receipt — truthful status only (§12), shareable (§13) ─────────
   if (step === 'receipt') {
-    const status = receipt?.status || 'PROCESSING';
     return (
       <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
-        <Surface style={{ alignItems: 'center' }}>
-          <Ionicons name={confirming ? 'hourglass-outline' : 'checkmark-circle'} size={40} color={confirming ? theme.goldDeep : theme.green} />
-          <Text style={s.cardTitle}>{confirming ? "We're still confirming" : 'Transfer sent'}</Text>
-          {confirming ? (
-            <>
-              <Text style={[s.rowSubtle, { textAlign: 'center' }]}>
-                Your request went through but the network is still confirming it. Check Activity in a few minutes — do not send again.
-              </Text>
-              <View style={{ height: 12 }} />
-            </>
-          ) : (
-            <>
-              <Text style={s.receiptAmount}>{format(quote?.destAmount ?? { amountMinor: 0, currency: srcCurrency })}</Text>
-              <Text style={s.receiptRef}>To {recipientName}</Text>
-              <StatusPill status={status} />
-              <View style={{ height: 14 }} />
-            </>
-          )}
-          <PrimaryButton label="Done" onPress={back} />
-        </Surface>
+        <ReceiptView
+          title="Transfer sent"
+          status={receipt?.status}
+          confirming={confirming}
+          amount={confirming ? { amountMinor: 0, currency: srcCurrency } : quote?.sourceAmount ?? { amountMinor: 0, currency: srcCurrency }}
+          destAmount={!confirming && quote && quote.destAmount.currency !== quote.sourceAmount.currency ? quote.destAmount : undefined}
+          fee={confirming ? undefined : quote?.fee}
+          reference={receipt?.reference || receipt?.id}
+          recipientLabel={recipientName}
+          timestamp={receipt?.created_at}
+          onDone={back}
+        />
       </ScrollView>
     );
   }

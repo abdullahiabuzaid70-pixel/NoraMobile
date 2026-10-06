@@ -26,6 +26,7 @@ export interface Transaction {
   debit_amount?: number;
   credit_amount?: number;
   status?: string;
+  reference?: string;
   country?: string;
   created_at?: string;
   direction?: string;

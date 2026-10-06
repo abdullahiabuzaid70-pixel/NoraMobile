@@ -1,54 +1,81 @@
-/** NORA Add Money — funding via provider-backed endpoints. */
-import React, { useEffect, useState } from 'react';
+/**
+ * NORA Add Money — funding via provider-backed endpoints.
+ *
+ * Money movement rules apply to funding too: idempotency key per attempt
+ * (stable across retries), outcomeUnknown → "still confirming", domain money.
+ */
+import React, { useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
-import { nora } from '../../api';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { theme } from '../../theme';
 import { s } from '../../design-system/screenStyles';
-import { DarkCard, ErrorText, Field, flagFor, money, PrimaryButton, Row, StatusPill, Surface } from '../../ui';
-import { err, NavTarget, User } from '../../types';
+import { ErrorText, Field, PrimaryButton, Surface } from '../../ui';
+import { format, fromUserInput } from '../../domain/money';
+import { paymentsApi, Transaction } from '../../services/api/noraClient';
+import { ApiError, newIdempotencyKey } from '../../services/api/client';
+import { err, User } from '../../types';
+import { ReceiptView } from '../receipt/ReceiptView';
 
-
-/* ============================== FUND ============================== */
 export function FundScreen({ user, back }: { user: User; back: () => void }) {
   const [amount, setAmount] = useState('');
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [done, setDone] = useState<any | null>(null);
+  const [receipt, setReceipt] = useState<Transaction | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const idemKeyRef = useRef<string | null>(null);
+
+  const srcCurrency = user.currency || 'NGN';
 
   const submit = async () => {
     setError('');
-    const amt = parseFloat(amount);
-    if (!Number.isFinite(amt) || amt <= 0) { setError('Enter a valid amount.'); return; }
+    const amt = fromUserInput(amount, srcCurrency);
+    if (!amt) { setError('Enter a valid amount.'); return; }
     if (pin.length < 4) { setError('Enter your PIN.'); return; }
     setBusy(true);
-    try { setDone(await nora.fund({ amount: amt, source: 'bank_transfer', pin })); setAmount(''); setPin(''); }
-    catch (e) { setError(err(e)); } finally { setBusy(false); }
+    if (!idemKeyRef.current) idemKeyRef.current = newIdempotencyKey();
+    try {
+      const res = await paymentsApi.fund({
+        amount: amt.amountMinor / 100,
+        source: 'bank_transfer',
+        pin,
+        idempotencyKey: idemKeyRef.current, // stable across retries
+      });
+      setReceipt(res);
+      setAmount(''); setPin('');
+    } catch (e) {
+      if (e instanceof ApiError && e.outcomeUnknown) {
+        setConfirming(true); setReceipt({} as Transaction);
+      } else { setError(err(e)); }
+    } finally { setBusy(false); }
   };
 
   return (
     <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
-      <View style={s.sendHeader}><Pressable onPress={back}><Text style={s.backArrow}>←</Text></Pressable><Text style={s.screenTitle}>Add Money</Text><Text> </Text></View>
-      {done ? (
-        <Surface style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 34 }}>✅</Text>
-          <Text style={s.cardTitle}>Money added</Text>
-          <Text style={s.receiptAmount}>{money(done.amount ?? done.credit_amount, user.currency)}</Text>
-          <Text style={s.receiptRef}>Reference: {done.reference || done.id}</Text>
-          <PrimaryButton label="Done" onPress={back} />
-        </Surface>
+      <View style={s.sendHeader}>
+        <Pressable onPress={back}><Ionicons name="arrow-back" size={22} color={theme.text} /></Pressable>
+        <Text style={s.screenTitle}>Add Money</Text>
+      </View>
+      {receipt ? (
+        <ReceiptView
+          title="Money added"
+          status={receipt.status}
+          confirming={confirming}
+          amount={fromUserInput(amount || String(receipt.amount ?? receipt.credit_amount ?? 0), srcCurrency) || { amountMinor: Math.round(Number(receipt.amount ?? receipt.credit_amount ?? 0) * 100), currency: srcCurrency }}
+          reference={receipt.reference || receipt.id}
+          onDone={back}
+        />
       ) : (
         <Surface>
           <Text style={s.rowSubtle}>Simulated bank transfer (sandbox pilot).</Text>
           <View style={{ height: 10 }} />
-          <Field label={`Amount (${user.currency || 'NGN'})`} value={amount} onChangeText={setAmount} placeholder="0.00" keyboardType="number-pad" />
+          <Field label={`Amount (${srcCurrency})`} value={amount} onChangeText={(t) => { setAmount(t); idemKeyRef.current = null; }} placeholder="0.00" keyboardType="number-pad" />
           <Field label="PIN" value={pin} onChangeText={setPin} placeholder="••••" keyboardType="number-pad" secureTextEntry />
           <ErrorText>{error}</ErrorText>
           <PrimaryButton label="Add money" onPress={submit} loading={busy} />
+          <Text style={s.footNote}>Your PIN authorizes this funding. No PIN, no money moves.</Text>
         </Surface>
       )}
     </ScrollView>
   );
 }
-
