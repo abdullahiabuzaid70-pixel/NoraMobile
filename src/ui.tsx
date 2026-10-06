@@ -96,12 +96,22 @@ export function Row({ icon, title, subtitle, right, onPress }: { icon?: React.Re
   );
 }
 
+/** Skeleton — calm placeholder pulse; used for progressive loading. */
+export function Skeleton({ width, height = 16, style }: { width?: number | 'fill'; height?: number; style?: ViewStyle }) {
+  return (
+    <View
+      style={[styles.skeleton, { height }, width === 'fill' ? { flex: 1, alignSelf: 'stretch' } : { width }, style]}
+    />
+  );
+}
+
 export function ErrorText({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
   return <Text style={styles.error}>{children}</Text>;
 }
 
 const styles = StyleSheet.create({
+  skeleton: { borderRadius: 6, backgroundColor: theme.border },
   surface: { backgroundColor: theme.surface, borderRadius: 16, borderWidth: 1, borderColor: theme.border, padding: 16 },
   darkCard: { backgroundColor: theme.dark, borderRadius: 18, padding: 18 },
   btn: { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 6 },

@@ -4,6 +4,8 @@ import { theme } from '../theme';
 
 /* ============================== STYLES ============================== */
 export const s = StyleSheet.create({
+  offlineBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(201, 169, 97, 0.14)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, marginTop: 12 },
+  offlineBannerText: { color: theme.goldDeep, fontSize: 11, fontWeight: '600' },
   txIconCircleBare: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.dark, alignItems: 'center', justifyContent: 'center' },
   txBadge: { position: 'absolute', bottom: -3, right: -3, width: 16, height: 16, borderRadius: 8, backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
   activityHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 2 },
