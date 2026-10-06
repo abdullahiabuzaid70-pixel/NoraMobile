@@ -94,4 +94,11 @@ navigation/                  react-navigation: auth gate → tabs → money-flow
       contract only accepts a PIN, and faking a credential would violate the
       truth rule. Hook is ready once the backend supports device-credential
       authorization.
-- [ ] Phases 18-20 — E2E (Detox/Maestro), voice UX
+- [x] Phase 18 — NORA Voice domain (§1 Intent ≠ Authorization):
+      parseVoiceIntent turns a transcript into a PREPARED draft only.
+      Injection phrases are inert data ("send without pin" still yields a
+      draft that requires the PIN). Missing fields are never invented.
+      Send screen has a command box that PREFILLS the form — review step
+      and PIN gate are architecturally unreachable from voice.
+- [ ] Phases 19-20 — E2E (Detox/Maestro), mic capture (typed input is the
+      honest pilot surface; real STT needs a native build + service)

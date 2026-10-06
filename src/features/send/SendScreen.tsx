@@ -20,6 +20,7 @@ import { accountApi, paymentsApi, Recipient } from '../../services/api/noraClien
 import { ApiError } from '../../services/api/client';
 import { newIdempotencyKey } from '../../services/api/client';
 import { err, NavTarget, User } from '../../types';
+import { parseVoiceIntent } from '../../domain/voice';
 import { ReceiptView } from '../receipt/ReceiptView';
 import { track } from '../../analytics/analytics';
 
@@ -41,6 +42,20 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
   const [step, setStep] = useState<Step>('compose');
   const [quote, setQuote] = useState<ReturnType<typeof quoteFromBackend>>(null);
   const [pin, setPin] = useState('');
+  // NORA Voice — parses a command into the form. Intent ≠ Authorization:
+  // this only PREFILLS; the review step and PIN gate are never skipped.
+  const [voiceInput, setVoiceInput] = useState('');
+  const [voiceDraft, setVoiceDraft] = useState<ReturnType<typeof parseVoiceIntent> | null>(null);
+  const applyVoice = () => {
+    const d = parseVoiceIntent(voiceInput);
+    setVoiceDraft(d);
+    if (d.kind === 'send') {
+      if (d.recipientNoraId) setRecipientInput(d.recipientNoraId);
+      if (d.amountMinor) setAmount(String(d.amountMinor / 100));
+      setSendTo('nora_id');
+      setMode('nora_transfer');
+    }
+  };
   const [receipt, setReceipt] = useState<any | null>(null);
   const [confirming, setConfirming] = useState(false); // outcomeUnknown → "still confirming"
   const [busy, setBusy] = useState(false);
@@ -219,6 +234,28 @@ export function SendScreen({ user, back }: { user: User; back: () => void }) {
   // ── Compose ────────────────────────────────────────────────────────
   return (
     <ScrollView style={s.page} contentContainerStyle={s.pageInner}>
+      <Surface style={{ padding: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="mic-outline" size={14} color={theme.goldDeep} />
+          <Text style={s.rowSubtle}>NORA Voice — type what you want to do. It prepares, you authorize.</Text>
+        </View>
+        <View style={{ height: 8 }} />
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <TextInput
+            value={voiceInput}
+            onChangeText={setVoiceInput}
+            onSubmitEditing={applyVoice}
+            placeholder="e.g. Send 5000 naira to NG5366365355AA"
+            placeholderTextColor={theme.textDim}
+            style={[s.input, { flex: 1 }]}
+            returnKeyType="done"
+          />
+          <Pressable onPress={applyVoice} style={s.smallGoldBtn} accessibilityRole="button" accessibilityLabel="Prepare from voice command">
+            <Ionicons name="arrow-forward" size={16} color={theme.dark} />
+          </Pressable>
+        </View>
+        {voiceDraft ? <Text style={[s.rowSubtle, { marginTop: 6 }]}>{voiceDraft.nextStep}</Text> : null}
+      </Surface>
       <View style={s.sendHeader}>
         <Pressable onPress={back}><Ionicons name="arrow-back" size={22} color={theme.text} /></Pressable>
         <View style={{ flex: 1, marginLeft: 10 }}>

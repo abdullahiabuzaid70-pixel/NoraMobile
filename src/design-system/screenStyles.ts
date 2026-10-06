@@ -97,6 +97,14 @@ export const s = StyleSheet.create({
   rateBox: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#F1EFE6', borderRadius: 12, padding: 13, marginTop: 14, marginBottom: 6 },
   rateLabel: { color: theme.textDim, fontSize: 10.5 },
   rateValue: { color: theme.text, fontSize: 12, fontWeight: '700', marginTop: 2 },
+  smallGoldBtn: {
+    backgroundColor: '#C9A961',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   input: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: 12, color: theme.text, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15 },
 
   page: { flex: 1, backgroundColor: theme.bg },
