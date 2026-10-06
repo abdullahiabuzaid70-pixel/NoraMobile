@@ -78,6 +78,12 @@ navigation/                  react-navigation: auth gate → tabs → money-flow
 - [x] Phase 3 — auth foundation (secure sessions, restore, logout)
 - [x] Foundation: domain (money/FX/transactions/ID), hardened API client,
       secure storage, voice interfaces, flags, analytics, tests
-- [ ] Phase 4 — Home hardening (skeletons, offline cache, query integration)
-- [ ] Phases 5-22 — per master spec (send flow review screen, receipts,
-      funding/withdrawal polish, KYC, step-up auth, E2E, release engineering)
+- [x] Phase 4 — Home hardening (skeletons, offline cache, pull-to-refresh)
+- [x] Phase 7 — Send review step (full breakdown before PIN, quote expiry)
+- [x] Phase 12/13 — truthful receipts (shared ReceiptView, shareable)
+- [x] Phases 10/11 — Fund/Withdraw hardening (idempotency, outcome-unknown)
+- [x] Phase 15 — Activity hardening (offline pattern, truthful in/out totals,
+      fabricated trend metric removed)
+- [x] Phase 22 — release engineering (EAS profiles: preview APK / production,
+      CI workflow, RELEASE.md)
+- [ ] Phases 16-20 — KYC, step-up auth, E2E (Detox/Maestro), voice UX

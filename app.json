@@ -5,17 +5,19 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "nora",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#012C21",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#0A4D2C",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.abuzaid.nora"
+      "bundleIdentifier": "com.abuzaid.nora",
+      "backgroundColor": "#0A4D2C"
     },
     "android": {
       "package": "com.abuzaid.nora",
       "adaptiveIcon": {
-        "backgroundColor": "#012C21"
-      }
+        "backgroundColor": "#0A4D2C"
+      },
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
