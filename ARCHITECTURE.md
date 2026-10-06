@@ -86,4 +86,12 @@ navigation/                  react-navigation: auth gate → tabs → money-flow
       fabricated trend metric removed)
 - [x] Phase 22 — release engineering (EAS profiles: preview APK / production,
       CI workflow, RELEASE.md)
-- [ ] Phases 16-20 — KYC, step-up auth, E2E (Detox/Maestro), voice UX
+- [x] Phase 16 — KYC domain (tiers, truthful status from backend, per-tier
+      limits; Profile shows real state, hardcoded 'Verified' removed)
+- [x] Phase 17 — step-up: useStepUp hook (expo-local-authentication) detects
+      biometric availability and surfaces it truthfully in Profile. Biometric
+      SUBMIT is deliberately NOT wired into money movement: the backend
+      contract only accepts a PIN, and faking a credential would violate the
+      truth rule. Hook is ready once the backend supports device-credential
+      authorization.
+- [ ] Phases 18-20 — E2E (Detox/Maestro), voice UX

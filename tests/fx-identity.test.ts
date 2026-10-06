@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FxQuote, isUsable, quoteFromBackend, quoteStatus, senderPays } from '../src/domain/fx';
+import { dailyLimitFor, normalizeKyc, withinLimit } from '../src/domain/kyc';
 import { money } from '../src/domain/money';
 import { countryOf, isValidNoraId, normalizeForLookup } from '../src/domain/identity';
 
@@ -76,5 +77,26 @@ describe('quoteFromBackend adapter', () => {
     expect(quoteFromBackend(null, 'NGN')).toBeNull();
     expect(quoteFromBackend({}, 'NGN')).toBeNull();
     expect(quoteFromBackend({ rate: 0.068 }, 'NGN')).toBeNull(); // no id — never fabricate
+  });
+});
+
+describe('KYC domain', () => {
+  it('defaults to unverified when the backend says nothing', () => {
+    const st = normalizeKyc(null);
+    expect(st.status).toBe('NOT_STARTED');
+    expect(st.fullyVerified).toBe(false);
+    expect(withinLimit(st, 1000)).toBe(false); // unverified: no transfer expected
+  });
+
+  it('never fabricates approval from garbage data', () => {
+    expect(normalizeKyc({ status: 'hacked', tier: 'TIER_9' }).fullyVerified).toBe(false);
+    expect(normalizeKyc({ status: 'APPROVED', tier: 'TIER_1' }).fullyVerified).toBe(false); // T1 approval is not full verification
+    expect(normalizeKyc({ status: 'APPROVED', tier: 'TIER_2' }).fullyVerified).toBe(true);
+  });
+
+  it('maps tier limits', () => {
+    expect(dailyLimitFor(normalizeKyc({ status: 'APPROVED', tier: 'TIER_3' })).amountMinor).toBe(500_000_000);
+    expect(withinLimit(normalizeKyc({ status: 'APPROVED', tier: 'TIER_2' }), 50_000_000)).toBe(true);
+    expect(withinLimit(normalizeKyc({ status: 'APPROVED', tier: 'TIER_2' }), 50_000_001)).toBe(false);
   });
 });

@@ -66,6 +66,7 @@ export const accountApi = {
   activity: () => request<Transaction[] | { transactions: Transaction[] }>('/v1/activity'),
   banks: () => request<Bank[] | { banks: Bank[] }>('/v1/banks'),
   fxRates: () => request<unknown>('/v1/fx/rates'),
+  kyc: () => request<Record<string, unknown>>('/v1/kyc'),
   resolveNoraId: (noraId: string) =>
     request<Recipient>(`/v1/resolve/${encodeURIComponent(noraId)}`),
 };

@@ -6,23 +6,40 @@ import { nora } from '../../api';
 import { theme } from '../../theme';
 import { s } from '../../design-system/screenStyles';
 import { DarkCard, ErrorText, Field, flagFor, money, PrimaryButton, Row, StatusPill, Surface } from '../../ui';
+import { normalizeKyc, dailyLimitFor, TIER_LABELS } from '../../domain/kyc';
+import { format } from '../../domain/money';
+import { displayNoraId } from '../../domain/identity';
+import { useServerQuery } from '../../hooks/useServerQuery';
+import { accountApi } from '../../services/api/noraClient';
+import { useStepUp } from '../../hooks/useStepUp';
 import { err, NavTarget, User } from '../../types';
 import { AccountTile } from '../accounts/AccountsScreen';
 
 
 /* ============================== PROFILE ============================== */
-const SETTINGS_ROWS = [
+const SETTINGS_ROWS = (kycLabel: string, kycVerified: boolean, bioLabel: string) => [
   { icon: 'person-outline', title: 'Personal Information', sub: 'Name, email, phone, date of birth' },
-  { icon: 'shield-checkmark-outline', title: 'Security & Privacy', sub: 'Password, biometrics, 2FA' },
-  { icon: 'document-text-outline', title: 'KYC Verification', sub: 'Identity and address verification', verified: true },
+  { icon: 'shield-checkmark-outline', title: 'Security & Privacy', sub: bioLabel },
+  { icon: 'document-text-outline', title: 'KYC Verification', sub: kycLabel, verified: kycVerified },
   { icon: 'notifications-outline', title: 'Notification Settings', sub: 'Transaction alerts, email, push' },
   { icon: 'headset-outline', title: 'Help & Support', sub: 'FAQs, live chat, contact us' },
   { icon: 'information-circle-outline', title: 'About NORA', sub: 'Version 1.0.0' },
 ] as const;
 
 export function ProfileScreen({ user, go, onLogout }: { user: User; go: (s: NavTarget) => void; onLogout: () => void }) {
+  // Truthful KYC: backend status only; missing endpoint = not started, never verified.
+  const kycQuery = useServerQuery<Record<string, unknown>>('kyc', () =>
+    accountApi.kyc().catch(() => null as unknown as Record<string, unknown>),
+  );
+  const kyc = normalizeKyc(kycQuery.data ?? null);
+  const stepUp = useStepUp();
+  const kycLabel =
+    kyc.status === 'APPROVED' ? `${TIER_LABELS[kyc.tier]} · Daily limit ${format(dailyLimitFor(kyc))}` :
+    kyc.status === 'PENDING' ? 'Verification under review' :
+    kyc.status === 'REJECTED' ? 'Verification needs attention' :
+    'Start verification to unlock transfers';
   const initials = `${(user.first_name || '?')[0]}${(user.last_name || '')[0] || ''}`.toUpperCase();
-  const idClean = user.nora_id ? String(user.nora_id).replace('@', '') : 'NA-0000-0000';
+  const idClean = user.nora_id ? displayNoraId(String(user.nora_id)) : '—';
 
   return (
     <ScrollView style={s.page} contentContainerStyle={[s.pageInner, { paddingBottom: 120 }]}>
@@ -100,7 +117,7 @@ export function ProfileScreen({ user, go, onLogout }: { user: User; go: (s: NavT
       </View>
 
       <Surface style={{ padding: 0, marginTop: 18 }}>
-        {SETTINGS_ROWS.map((r, i) => (
+        {SETTINGS_ROWS(kycLabel, kyc.fullyVerified, stepUp.available ? `${stepUp.kind === 'face' ? 'Face ID' : stepUp.kind === 'iris' ? 'Iris' : 'Fingerprint'} available · PIN protected` : 'PIN protected').map((r, i) => (
           <Row
             key={r.title}
             icon={<Ionicons name={r.icon as any} size={16} color={theme.dark} />}
