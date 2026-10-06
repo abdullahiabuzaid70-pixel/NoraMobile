@@ -100,5 +100,10 @@ navigation/                  react-navigation: auth gate → tabs → money-flow
       draft that requires the PIN). Missing fields are never invented.
       Send screen has a command box that PREFILLS the form — review step
       and PIN gate are architecturally unreachable from voice.
-- [ ] Phases 19-20 — E2E (Detox/Maestro), mic capture (typed input is the
-      honest pilot surface; real STT needs a native build + service)
+- [x] Phase 19 — E2E flows authored (Maestro, .maestro/): send happy path
+      (voice prefill → review → PIN → backend-truthful receipt), KYC truth,
+      Activity computed summary. Not yet executed — no emulator in the dev
+      sandbox; first run against a real build needs one selector pass.
+      TESTING.md documents how to run them.
+- [ ] Phase 20 — mic capture (typed input is the honest pilot surface;
+      real STT needs a native build + speech service)

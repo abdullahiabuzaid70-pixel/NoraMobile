@@ -1,0 +1,7 @@
+# NORA E2E — Activity loads and shows a truthful (computed) summary.
+appId: com.abuzaid.nora
+---
+- launchApp
+- tapOn: "Activity"
+- assertVisible: "Net movement"   # computed from backend list — never a fake trend
+- assertVisible: "Recent Transactions"

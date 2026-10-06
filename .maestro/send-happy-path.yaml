@@ -1,0 +1,20 @@
+# NORA E2E — Send happy path (requires the pilot backend reachable).
+# Run: maestro test .maestro/send-happy-path.yaml
+appId: com.abuzaid.nora
+---
+- launchApp
+- assertVisible: "Send Money"
+# Voice command prefill — Intent ≠ Authorization: it fills the form only.
+- tapOn: "e.g. Send 5000 naira to NG5366365355AA"   # command input placeholder
+- inputText: "Send 5000 naira to NG5366365355AA"
+- tapOn: "Prepare from voice command"
+# Draft must prefill recipient + amount, then the human proceeds normally.
+- assertVisible: "Draft ready"
+- tapOn: "Continue"        # resolve/quote step per current flow
+- assertVisible: "Review"
+- assertVisible: "5000"     # amount shown on review — never auto-sent
+- tapOn: "Continue to confirm"
+- assertVisible: "PIN"
+- inputText: "1234"
+- tapOn: "Confirm & Send"
+- assertVisible: "Receipt" # status comes from the backend only

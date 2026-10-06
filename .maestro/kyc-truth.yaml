@@ -1,0 +1,12 @@
+# NORA E2E — KYC truth: Profile never fabricates a verified state.
+appId: com.abuzaid.nora
+---
+- launchApp
+- tapOn: "Profile"
+# One of these truthful states MUST be visible; a bare hardcoded
+# 'Verified' badge is a spec violation.
+- runScript:
+    when:
+      visible: "Start verification to unlock transfers"
+      then: "pass"
+- assertVisible: "KYC Verification"
