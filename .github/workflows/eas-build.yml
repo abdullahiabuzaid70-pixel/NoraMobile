@@ -1,7 +1,6 @@
 name: EAS Preview Build
 on:
-  push:
-    branches: [main]
+  workflow_dispatch: {}   # manual only — avoids failing on every push without EXPO_TOKEN
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,6 +10,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - name: Check EXPO_TOKEN is configured
+        if: ${{ secrets.EXPO_TOKEN == '' }}
+        run: |
+          echo "::error::EXPO_TOKEN secret is not set. Add it in GitHub repo Settings > Secrets and variables > Actions, using a token from https://expo.dev/accounts/[your-account]/settings/access-tokens"
+          exit 1
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest

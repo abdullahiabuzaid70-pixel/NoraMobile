@@ -21,7 +21,13 @@ profile. Until then:
    are linked (`npx eas credentials`, Google Play / App Store Connect).
 
 ## CI (optional)
-`.github/workflows/eas-build.yml` builds a preview APK on every push to main.
+`.github/workflows/eas-build.yml` is manual-trigger only (GitHub repo > Actions >
+EAS Preview Build > Run workflow). It needs an `EXPO_TOKEN` repo secret first:
+1. Generate a token at https://expo.dev/accounts/[your-account]/settings/access-tokens
+2. In the repo: Settings > Secrets and variables > Actions > New repository secret
+   Name: `EXPO_TOKEN`, Value: the token from step 1
+Without that secret the workflow fails fast on purpose (clear error, no spam) —
+it no longer runs automatically on push, so it won't email you on every commit.
 
 ## Notes
 - `eas.json` "preview" builds are unsigned-for-store, internal distribution.
