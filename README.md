@@ -56,6 +56,22 @@ Money/Withdraw), dark Total Activity trend card (+12% vs last 30 days, View Anal
 Recent Transactions list with direction icons + flag/bank badge overlay and status pills
 (Completed/Processing/Failed with icons), bottom security banner (bank-grade encryption).
 
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md). Highlights:
+
+- Domain layer: integer minor-unit `Money`, FX quotes with expiry, transaction
+  state machine (Intent ≠ Authorization enforced in code), canonical NORA IDs.
+- Hardened API client: timeouts, request IDs, idempotency keys on all money
+  movement, typed errors with `outcomeUnknown` on money-request timeouts.
+- Tokens live in the OS keychain/keystore (expo-secure-store); sessions
+  restore on cold start. Logged-in ≠ authorized.
+- react-navigation shell: auth gate → bottom tabs → money-flow stack, Android
+  back + deep links (`nora://`).
+- NORA Voice foundation behind a feature flag: replaceable service interfaces
+  and a session state machine, no provider coupled in.
+- `npm test` — vitest domain suite (19 tests). `npm run typecheck` — strict TS.
+
 ## Run it on your phone (dev)
 1. Install "Expo Go" from the Play Store / App Store
 2. `npm install`
