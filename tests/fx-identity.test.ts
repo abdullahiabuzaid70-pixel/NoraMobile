@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FxQuote, isUsable, quoteStatus, senderPays } from '../src/domain/fx';
+import { FxQuote, isUsable, quoteFromBackend, quoteStatus, senderPays } from '../src/domain/fx';
 import { money } from '../src/domain/money';
 import { countryOf, isValidNoraId, normalizeForLookup } from '../src/domain/identity';
 
@@ -51,5 +51,30 @@ describe('NORA ID', () => {
     expect(countryOf('NG5366365355AA')).toBe('NG');
     expect(countryOf('GH5366365355AA')).toBe('GH');
     expect(countryOf('ZZ5366365355AA')).toBeNull();
+  });
+});
+
+describe('quoteFromBackend adapter', () => {
+  it('maps the loose backend shape into the domain quote', () => {
+    const q = quoteFromBackend(
+      { id: 'q_9', rate: 0.068, fee: 0.5, amount: 500, receive_amount: 34, recipient_currency: 'GHS', expires_at: '2026-10-06T10:10:00Z' },
+      'NGN',
+    );
+    expect(q).not.toBeNull();
+    expect(q!.sourceAmount).toEqual({ amountMinor: 50000, currency: 'NGN' });
+    expect(q!.destAmount).toEqual({ amountMinor: 3400, currency: 'GHS' });
+    expect(q!.fee.amountMinor).toBe(50);
+    expect(isUsable(q!, now)).toBe(true);
+  });
+
+  it('derives the destination amount in integers when the backend omits it', () => {
+    const q = quoteFromBackend({ quote_id: 'q_10', rate: 0.068, amount: 1000, recipient_currency: 'GHS' }, 'NGN');
+    expect(q!.destAmount).toEqual({ amountMinor: 6800, currency: 'GHS' });
+  });
+
+  it('rejects unusable payloads instead of inventing a quote', () => {
+    expect(quoteFromBackend(null, 'NGN')).toBeNull();
+    expect(quoteFromBackend({}, 'NGN')).toBeNull();
+    expect(quoteFromBackend({ rate: 0.068 }, 'NGN')).toBeNull(); // no id — never fabricate
   });
 });
